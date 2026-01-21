@@ -1,4 +1,5 @@
 #include "ble_spam.h"
+#include "ble_spam_attacks.h"
 #include <gui/gui.h>
 #include <furi_hal_bt.h>
 #include <extra_beacon.h>
@@ -8,977 +9,6 @@
 
 // MagicBand + Lights
 // OG code by WillyJL, Modified by haw8411 to fit & work with MagicBands.
-
-static Attack attacks[] = {
-{
-    .title="MagicBand+ Library",
-    .text  = "Disney 0x0183 beacons",
-    .protocol = &protocol_magicband,
-    .payload = {
-        .random_mac = true,
-        .cfg.magicband = {
-            .category = MB_Cat_E905_Single,
-            .index = 0,
-            .color5 = 0,
-            .vibe_on = true,
-        },
-    },
-},
-{
-        .title="CC Ping",
-        .text  = "cc03000000",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_CC,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="CC 000100",
-        .text  = "cc03000100",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_CC,
-                .index = 1,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="CC 132000",
-        .text  = "cc03132000",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_CC,
-                .index = 2,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="00 cyan",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="01 purple",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 1,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="02 blue",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 2,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="03 midnight blue",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 3,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="04 blue",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 4,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="05 bright purple",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 5,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="06 lavender",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 6,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="07 purple",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 7,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="08 pink",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 8,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="09 pink",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 9,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="10 pink",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 10,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="11 pink",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 11,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="12 pink",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 12,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="13 pink",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 13,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="14 pink",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 14,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="15 yellow orange",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 15,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="16 off yellow",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 16,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="17 yellow orange",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 17,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="18 lime",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 18,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="19 orange",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 19,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="20 red orange",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 20,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="21 red",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 21,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="22 cyan",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 22,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="23 cyan",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 23,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="24 cyan",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 24,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="25 green",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 25,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="26 lime green",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 26,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="27 white",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 27,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="28 white",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 28,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="29 off",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 29,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="30 unique",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 30,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="31 random",
-        .text  = "single color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E905_Single,
-                .index = 0,
-                .color5 = 31,
-                .vibe_on = true,
-            },
-        },
-    },
-{
-        .title="E9-06 Dual (ex1)",
-        .text  = "E9-06 dual palette",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E906_Dual,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-07 (ex1)",
-        .text  = "unknown effect ex1",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E907_Unknown,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-07 (ex2)",
-        .text  = "unknown effect ex2",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E907_Unknown,
-                .index = 1,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-08 (ex1)",
-        .text  = "6-bit color",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E908_6bit,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-09 5-Color (ex1)",
-        .text  = "5-color palette",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E909_5Palette,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0B Circle (ex1)",
-        .text  = "circle animation",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90B_Circle,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0C Blink White",
-        .text  = "blink white",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90C_Animations,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0C Orange Blink",
-        .text  = "orange blink",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90C_Animations,
-                .index = 1,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0C 5-Color Cycle",
-        .text  = "palette cycle",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90C_Animations,
-                .index = 2,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0C Taste the Rainbow",
-        .text  = "rainbow cycle",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90C_Animations,
-                .index = 3,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0E (ex1)",
-        .text  = "example 1",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90E_Examples,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0E (ex2)",
-        .text  = "example 2",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90E_Examples,
-                .index = 1,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0E (ex3)",
-        .text  = "example 3",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90E_Examples,
-                .index = 2,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0E (ex4)",
-        .text  = "example 4",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90E_Examples,
-                .index = 3,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0E (ex5)",
-        .text  = "example 5",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90E_Examples,
-                .index = 4,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0F (ex1)",
-        .text  = "example 1",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90F_Examples,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-0F (ex2)",
-        .text  = "example 2",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E90F_Examples,
-                .index = 1,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-10 Alternating (ex1)",
-        .text  = "alternating colors",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E910_Alternating,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-11 Cross Fade (ex1)",
-        .text  = "cross fade",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E911_Crossfade,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-11 Cross Fade (ex2)",
-        .text  = "cross fade",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E911_Crossfade,
-                .index = 1,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-11 Cross Fade (ex3)",
-        .text  = "cross fade",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E911_Crossfade,
-                .index = 2,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-11 Cross Fade (ex4)",
-        .text  = "cross fade",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E911_Crossfade,
-                .index = 3,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-11 Cross Fade (ex5)",
-        .text  = "cross fade",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E911_Crossfade,
-                .index = 4,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-11 Cross Fade (ex6)",
-        .text  = "cross fade",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E911_Crossfade,
-                .index = 5,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-11 Cross Fade (ex7)",
-        .text  = "cross fade",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E911_Crossfade,
-                .index = 6,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-12 Circle+Vibe (ex1)",
-        .text  = "circle + vibe",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E912_CircleVibe,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-12 Circle+Vibe (ex2)",
-        .text  = "circle + vibe",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E912_CircleVibe,
-                .index = 1,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-12 Circle+Vibe (ex3)",
-        .text  = "circle + vibe",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E912_CircleVibe,
-                .index = 2,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-13 (ex1)",
-        .text  = "animation",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E913_Examples,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-13 (ex2)",
-        .text  = "animation",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E913_Examples,
-                .index = 1,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-14 (ex1)",
-        .text  = "animation",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E914_Examples,
-                .index = 0,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-14 (ex2)",
-        .text  = "animation",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E914_Examples,
-                .index = 1,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    },
-{
-        .title="E9-14 (ex3)",
-        .text  = "animation",
-        .protocol = &protocol_magicband,
-        .payload = {
-            .random_mac = true,
-            .cfg.magicband = {
-                .category = MB_Cat_E914_Examples,
-                .index = 2,
-                .color5 = 0,
-                .vibe_on = false,
-            },
-        },
-    }
-};
-
-#define ATTACKS_COUNT ((signed)COUNT_OF(attacks))
 
 static uint16_t delays[] = {20, 50, 100, 200, 500};
 
@@ -1037,6 +67,7 @@ static void start_extra_beacon(State* state) {
     uint8_t* packet;
     uint16_t delay = delays[state->delay];
     GapExtraBeaconConfig* config = &state->config;
+    Attack* attacks = get_attacks();
     Payload* payload = &attacks[state->index].payload;
     const Protocol* protocol = attacks[state->index].protocol;
 
@@ -1058,6 +89,7 @@ static void start_extra_beacon(State* state) {
 
 static int32_t adv_thread(void* _ctx) {
     State* state = _ctx;
+    Attack* attacks = get_attacks();
     Payload* payload = &attacks[state->index].payload;
     const Protocol* protocol = attacks[state->index].protocol;
     if(!payload->random_mac) randomize_mac(state);
@@ -1096,7 +128,6 @@ static void toggle_adv(State* state) {
 }
 
 #define PAGE_MIN (-5)
-#define PAGE_MAX ATTACKS_COUNT
 enum {
     PageHelpBruteforce = PAGE_MIN,
     PageHelpApps,
@@ -1104,9 +135,10 @@ enum {
     PageHelpDistance,
     PageHelpInfoConfig,
     PageStart = 0,
-    PageEnd = ATTACKS_COUNT - 1,
-    PageAboutCredits = PAGE_MAX,
 };
+#define PageEnd (ATTACKS_COUNT - 1)
+#define PAGE_MAX ATTACKS_COUNT
+#define PageAboutCredits PAGE_MAX
 
 static void draw_callback(Canvas* canvas, void* _ctx) {
     State* state = *(State**)_ctx;
@@ -1116,21 +148,17 @@ static void draw_callback(Canvas* canvas, void* _ctx) {
         back = "Next";
         next = "Back";
     }
-    switch(state->index) {
-    case PageStart - 1:
+    if(state->index == PageStart - 1) {
         next = "Spam";
-        break;
-    case PageStart:
+    } else if(state->index == PageStart) {
         back = "Help";
-        break;
-    case PageEnd:
+    } else if(state->index == PageEnd) {
         next = "About";
-        break;
-    case PageEnd + 1:
+    } else if(state->index == PageEnd + 1) {
         back = "Spam";
-        break;
     }
 
+    Attack* attacks = get_attacks();
     const Attack* attack =
         (state->index >= 0 && state->index <= ATTACKS_COUNT - 1) ? &attacks[state->index] : NULL;
     const Payload* payload = attack ? &attack->payload : NULL;
@@ -1141,8 +169,7 @@ static void draw_callback(Canvas* canvas, void* _ctx) {
     canvas_draw_icon(canvas, 4 - (icon == &I_ble_spam), 3, icon);
     canvas_draw_str(canvas, 14, 12, "MagicBand +");
 
-    switch(state->index) {
-    case PageHelpBruteforce:
+    if(state->index == PageHelpBruteforce) {
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Help");
         elements_text_box(
@@ -1158,8 +185,7 @@ static void draw_callback(Canvas* canvas, void* _ctx) {
             "right to send manually and\n"
             "change delay",
             false);
-        break;
-    case PageHelpApps:
+    } else if(state->index == PageHelpApps) {
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Help");
         elements_text_box(
@@ -1174,8 +200,7 @@ static void draw_callback(Canvas* canvas, void* _ctx) {
             "with the attacks, stay on\n"
             "homescreen for best results",
             false);
-        break;
-    case PageHelpDelay:
+    } else if(state->index == PageHelpDelay) {
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Help");
         elements_text_box(
@@ -1190,8 +215,7 @@ static void draw_callback(Canvas* canvas, void* _ctx) {
             "attack attempts (top right),\n"
             "keep 20ms for best results",
             false);
-        break;
-    case PageHelpDistance:
+    } else if(state->index == PageHelpDistance) {
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Help");
         elements_text_box(
@@ -1206,8 +230,7 @@ static void draw_callback(Canvas* canvas, void* _ctx) {
             "some are long range (>30 m)\n"
             "others are close range (<1 m)",
             false);
-        break;
-    case PageHelpInfoConfig:
+    } else if(state->index == PageHelpInfoConfig) {
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Help");
         elements_text_box(
@@ -1222,8 +245,7 @@ static void draw_callback(Canvas* canvas, void* _ctx) {
             "attack \e#options\e# by holding\n"
             "Ok on each attack page",
             false);
-        break;
-    case PageAboutCredits:
+    } else if(state->index == PageAboutCredits) {
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Credits");
         elements_text_box(
@@ -1238,9 +260,7 @@ static void draw_callback(Canvas* canvas, void* _ctx) {
             "Modified By: \e#haw8411\e#\n"
             "                                   Version \e#" FAP_VERSION "\e#",
             false);
-        break;
-    default: {
-        if(!attack) break;
+    } else if(attack) {
         if(state->ctx.lock_keyboard && !state->advertising) {
             // Forgive me Lord for I have sinned by handling state in draw
             toggle_adv(state);
@@ -1295,8 +315,6 @@ static void draw_callback(Canvas* canvas, void* _ctx) {
         canvas_draw_str(canvas, 4, 46, attack->text);
 
         elements_button_center(canvas, state->advertising ? "Stop" : "Start");
-        break;
-    }
     }
 
     if(state->index > PAGE_MIN) {
@@ -1342,6 +360,7 @@ static bool input_callback(InputEvent* input, void* _ctx) {
         input->type == InputTypeRepeat) {
         consumed = true;
 
+        Attack* attacks = get_attacks();
         bool is_attack = state->index >= 0 && state->index <= ATTACKS_COUNT - 1;
         Payload* payload = is_attack ? &attacks[state->index].payload : NULL;
         bool advertising = state->advertising;
@@ -1398,6 +417,7 @@ static bool input_callback(InputEvent* input, void* _ctx) {
                 }
             } else {
                 if(!advertising) {
+                    Attack* attacks = get_attacks();
                     Payload* payload = &attacks[state->index].payload;
                     if(input->type == InputTypeLong && !payload->random_mac) randomize_mac(state);
                     if(furi_hal_bt_extra_beacon_is_active()) {

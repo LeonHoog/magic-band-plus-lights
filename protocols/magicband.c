@@ -156,7 +156,7 @@ static const char* get_name(const Payload* payload) {
     return "MagicBand+";
 }
 
-static void make_packet(uint8_t* _size, uint8_t** _packet, Payload* payload) {
+static void make_packet(Payload* payload, uint8_t* buffer, uint8_t* size) {
     MagicbandCfg* cfg = &payload->cfg.magicband;
     uint8_t adv[31]; size_t adv_len = 0;
 
@@ -188,9 +188,8 @@ static void make_packet(uint8_t* _size, uint8_t** _packet, Payload* payload) {
     case MB_Cat_E914_Examples: { const Entry* arr = CAT_E914; uint8_t i = cfg->index % (sizeof(CAT_E914)/sizeof(CAT_E914[0]));   adv_len = build_adv(arr[i].data, arr[i].len, adv); break; }
     }
 
-    *_size = adv_len;
-    *_packet = (uint8_t*)malloc(adv_len);
-    memcpy(*_packet, adv, adv_len);
+    *size = (uint8_t)adv_len;
+    memcpy(buffer, adv, adv_len);
 }
 
 // Only toggle we expose in Config: Vibration (for E9-05 entries)

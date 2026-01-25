@@ -46,8 +46,8 @@ void ble_spam_randomize_mac(BleSpamState* state) {
 }
 
 void ble_spam_start_extra_beacon(BleSpamState* state) {
-    uint8_t size;
-    uint8_t* packet;
+    uint8_t size = 0;
+    uint8_t buffer[31] = {0};
     uint16_t delay = delays[state->delay];
     GapExtraBeaconConfig* config = &state->config;
     Attack* attacks = get_attacks();
@@ -60,54 +60,54 @@ void ble_spam_start_extra_beacon(BleSpamState* state) {
     furi_check(furi_hal_bt_extra_beacon_set_config(config));
 
     if(protocol) {
-        protocol->make_packet(&size, &packet, payload);
+        protocol->make_packet(payload, buffer, &size);
     } else {
-        protocols[rand() % protocols_count]->make_packet(&size, &packet, NULL);
+        protocols[furi_hal_random_get() % protocols_count]->make_packet(NULL, buffer, &size);
     }
-    furi_check(furi_hal_bt_extra_beacon_set_data(packet, size));
-    free(packet);
+    furi_check(furi_hal_bt_extra_beacon_set_data(buffer, size));
 
     furi_check(furi_hal_bt_extra_beacon_start());
 }
 
 static int32_t adv_thread(void* _ctx) {
     BleSpamState* state = _ctx;
-    Attack* attacks = get_attacks();
-    Payload* payload = &attacks[state->index].payload;
-    const Protocol* protocol = attacks[state->index].protocol;
-    if(!payload->random_mac) ble_spam_randomize_mac(state);
-    ble_spam_start_blink(state);
-    if(furi_hal_bt_extra_beacon_is_active()) {
-        furi_check(furi_hal_bt_extra_beacon_stop());
-    }
+    
+    while(true) {
+        uint32_t flags = furi_thread_flags_wait(1 | 2, FuriFlagWaitAny, FuriWaitForever);
+        if(flags & 2 || !state->advertising) break; // Exit flag or stop
 
-    while(state->advertising) {
-        if(protocol && payload->mode == PayloadModeBruteforce &&
-           payload->bruteforce.counter++ >= 10) {
-            payload->bruteforce.counter = 0;
-            payload->bruteforce.value =
-                (payload->bruteforce.value + 1) % (1 << (payload->bruteforce.size * 8));
+        Attack* attacks = get_attacks();
+        Payload* payload = &attacks[state->index].payload;
+        const Protocol* protocol = attacks[state->index].protocol;
+
+        if(!payload->random_mac) ble_spam_randomize_mac(state);
+        ble_spam_start_blink(state);
+        if(furi_hal_bt_extra_beacon_is_active()) {
+            furi_check(furi_hal_bt_extra_beacon_stop());
         }
 
-        ble_spam_start_extra_beacon(state);
+        while(state->advertising) {
+             if(protocol && payload->mode == PayloadModeBruteforce &&
+               payload->bruteforce.counter++ >= 10) {
+                payload->bruteforce.counter = 0;
+                payload->bruteforce.value =
+                    (payload->bruteforce.value + 1) % (1 << (payload->bruteforce.size * 8));
+            }
 
-        furi_thread_flags_wait(true, FuriFlagWaitAny, delays[state->delay]);
-        furi_check(furi_hal_bt_extra_beacon_stop());
+            ble_spam_start_extra_beacon(state);
+            furi_thread_flags_wait(2, FuriFlagWaitAny, delays[state->delay]);
+            furi_check(furi_hal_bt_extra_beacon_stop());
+        }
+        ble_spam_stop_blink(state);
     }
-
-    ble_spam_stop_blink(state);
     return 0;
 }
 
 void ble_spam_toggle_adv(BleSpamState* state) {
+    state->advertising = !state->advertising;
     if(state->advertising) {
-        state->advertising = false;
-        furi_thread_flags_set(furi_thread_get_id(state->thread), true);
-        furi_thread_join(state->thread);
-    } else {
-        state->advertising = true;
-        furi_thread_start(state->thread);
-    }
+        furi_thread_flags_set(furi_thread_get_id(state->thread), 1);
+    } 
 }
 
 void ble_spam_manual_attack(BleSpamState* state) {
@@ -180,6 +180,7 @@ int32_t ble_spam(void* p) {
     furi_thread_set_callback(state->thread, adv_thread);
     furi_thread_set_context(state->thread, state);
     furi_thread_set_stack_size(state->thread, 2048);
+    furi_thread_start(state->thread);
     state->ctx.led_indicator = true;
     state->lock_timer = furi_timer_alloc(lock_timer_callback, FuriTimerTypeOnce, state);
 
@@ -244,7 +245,13 @@ int32_t ble_spam(void* p) {
     furi_record_close(RECORD_NOTIFICATION);
 
     furi_timer_free(state->lock_timer);
+    
+    // Stop worker thread
+    state->advertising = false;
+    furi_thread_flags_set(furi_thread_get_id(state->thread), 2); // Set exit flag
+    furi_thread_join(state->thread);
     furi_thread_free(state->thread);
+
     free(state);
 
     if(furi_hal_bt_extra_beacon_is_active()) {

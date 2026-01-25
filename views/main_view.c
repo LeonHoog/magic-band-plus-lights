@@ -21,6 +21,45 @@ enum {
 #define FAP_VERSION "1.0.0"
 #endif
 
+typedef struct {
+    const char* title;
+    const char* text;
+} HelpPage;
+
+static const HelpPage help_pages[] = {
+    [PageHelpBruteforce - PAGE_MIN] = {
+        .title = "Help",
+        .text = "\e#Bruteforce\e# cycles codes\n"
+            "to find popups, hold left and\n"
+            "right to send manually and\n"
+            "change delay",
+    },
+    [PageHelpApps - PAGE_MIN] = {
+        .title = "Help",
+        .text = "\e#Some Apps\e# interfere\n"
+            "with the attacks, stay on\n"
+            "homescreen for best results",
+    },
+    [PageHelpDelay - PAGE_MIN] = {
+        .title = "Help",
+        .text = "\e#Delay\e# is time between\n"
+            "attack attempts (top right),\n"
+            "keep 20ms for best results",
+    },
+    [PageHelpDistance - PAGE_MIN] = {
+        .title = "Help",
+        .text = "\e#Distance\e# varies greatly:\n"
+            "some are long range (>30 m)\n"
+            "others are close range (<1 m)",
+    },
+    [PageHelpInfoConfig - PAGE_MIN] = {
+        .title = "Help",
+        .text = "See \e#more info\e# and change\n"
+            "attack \e#options\e# by holding\n"
+            "Ok on each attack page",
+    },
+};
+
 void ble_spam_main_view_draw(Canvas* canvas, void* _model) {
     BleSpamState* state = *(BleSpamState**)_model;
     const char* back = "Back";
@@ -50,82 +89,22 @@ void ble_spam_main_view_draw(Canvas* canvas, void* _model) {
     canvas_draw_icon(canvas, 4 - (icon == &I_ble_spam), 3, icon);
     canvas_draw_str(canvas, 14, 12, "MagicBand+");
 
-    if(state->index == PageHelpBruteforce) {
-        canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Help");
-        elements_text_box(
-            canvas,
-            4,
-            16,
-            120,
-            48,
-            AlignLeft,
-            AlignTop,
-            "\e#Bruteforce\e# cycles codes\n"
-            "to find popups, hold left and\n"
-            "right to send manually and\n"
-            "change delay",
-            false);
-    } else if(state->index == PageHelpApps) {
-        canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Help");
-        elements_text_box(
-            canvas,
-            4,
-            16,
-            120,
-            48,
-            AlignLeft,
-            AlignTop,
-            "\e#Some Apps\e# interfere\n"
-            "with the attacks, stay on\n"
-            "homescreen for best results",
-            false);
-    } else if(state->index == PageHelpDelay) {
-        canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Help");
-        elements_text_box(
-            canvas,
-            4,
-            16,
-            120,
-            48,
-            AlignLeft,
-            AlignTop,
-            "\e#Delay\e# is time between\n"
-            "attack attempts (top right),\n"
-            "keep 20ms for best results",
-            false);
-    } else if(state->index == PageHelpDistance) {
-        canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Help");
-        elements_text_box(
-            canvas,
-            4,
-            16,
-            120,
-            48,
-            AlignLeft,
-            AlignTop,
-            "\e#Distance\e# varies greatly:\n"
-            "some are long range (>30 m)\n"
-            "others are close range (<1 m)",
-            false);
-    } else if(state->index == PageHelpInfoConfig) {
-        canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Help");
-        elements_text_box(
-            canvas,
-            4,
-            16,
-            120,
-            48,
-            AlignLeft,
-            AlignTop,
-            "See \e#more info\e# and change\n"
-            "attack \e#options\e# by holding\n"
-            "Ok on each attack page",
-            false);
+    if(state->index >= PAGE_MIN && state->index < PageStart) {
+        int help_index = state->index - PAGE_MIN;
+        if(help_index >= 0 && help_index < (int)COUNT_OF(help_pages)) {
+            canvas_set_font(canvas, FontPrimary);
+            canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, help_pages[help_index].title);
+            elements_text_box(
+                canvas,
+                4,
+                16,
+                120,
+                48,
+                AlignLeft,
+                AlignTop,
+                help_pages[help_index].text,
+                false);
+        }
     } else if(state->index == PageAboutCredits) {
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(canvas, 124, 12, AlignRight, AlignBottom, "Credits");

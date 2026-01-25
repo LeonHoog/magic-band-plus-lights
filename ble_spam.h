@@ -7,6 +7,8 @@
 #include <gui/modules/text_input.h>
 #include <gui/modules/variable_item_list.h>
 
+#include "extra_beacon.h"
+#include "furi_hal_bt.h"
 #include "scenes/_setup.h"
 
 enum {
@@ -25,6 +27,7 @@ enum {
 };
 
 typedef struct Attack Attack;
+typedef struct BleSpamState BleSpamState;
 
 typedef struct {
     Attack* attack;
@@ -45,4 +48,29 @@ typedef struct {
     VariableItem* item_pp_color;
 
 } Ctx;
+
+struct BleSpamState {
+    Ctx ctx;
+    View* main_view;
+    bool lock_warning;
+    uint8_t lock_count;
+    FuriTimer* lock_timer;
+
+    bool advertising;
+    uint8_t delay;
+    GapExtraBeaconConfig config;
+    FuriThread* thread;
+    int8_t index;
+    bool ignore_bruteforce;
+};
+
+void ble_spam_toggle_adv(BleSpamState* state);
+void ble_spam_start_blink(BleSpamState* state);
+void ble_spam_stop_blink(BleSpamState* state);
+void ble_spam_randomize_mac(BleSpamState* state);
+void ble_spam_start_extra_beacon(BleSpamState* state);
+void ble_spam_manual_attack(BleSpamState* state);
+
+#define DELAYS_COUNT 5
+extern uint16_t delays[DELAYS_COUNT];
 
